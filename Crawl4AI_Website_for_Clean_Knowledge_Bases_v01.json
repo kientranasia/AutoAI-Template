@@ -1,0 +1,529 @@
+{
+  "createdAt": "2025-03-29T15:11:42.011Z",
+  "updatedAt": "2025-04-13T14:50:09.840Z",
+  "id": "yyzDIS1eavxtulrZ",
+  "name": "Crawl4AI Website for Clean Knowledge Bases_v01",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        -280
+      ],
+      "id": "6efa4450-0f1a-4cc1-8ad8-b27ed0154848",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        0
+      ],
+      "id": "2dd3dae4-bff4-43b7-af51-0f44b8456142",
+      "name": "Wait",
+      "webhookId": "683cdc52-37c3-493e-89c8-16f5bb43e956"
+    },
+    {
+      "parameters": {
+        "url": "=https://crawl.autoai.asia/task/{{ $json.task_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "52059cca-f697-4eb7-9ed8-f6c0ac84de89",
+      "name": "Call Task",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JuPi1c6bAW3o7Z78",
+          "name": "Auth CrawlAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "32c8b432-4efa-40db-8400-7c145c69950d",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        0
+      ],
+      "id": "e95e9ea3-9e94-4024-8cf4-5dfa288febf7",
+      "name": "Completed"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e9eda6cd-7d7f-425d-9f46-48737d9c08e2",
+              "name": "task_id",
+              "value": "={{ $('Crawl').item.json.task_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1560,
+        120
+      ],
+      "id": "f8426f14-4f5e-4949-bcf2-d56e1a77a794",
+      "name": "Set TaskID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://crawl.autoai.asia/crawl",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "urls",
+              "value": "={{ $json.URL }}"
+            },
+            {
+              "name": "priority",
+              "value": "10"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "4116ca9e-e957-4cdc-9b48-f381651983d4",
+      "name": "Crawl",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JuPi1c6bAW3o7Z78",
+          "name": "Auth CrawlAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert in information structuring and knowledge base development for LLM-powered retrieval-augmented generation (RAG) systems. Your goal is to transform the CLEANED_MARKDOWN content into a structured, machine-readable format optimized for semantic search and chatbot integration.\n\n# Instructions\n\n1. **Extract Key Sections:**\n   - Identify and organize essential sections such as:\n     - **Company Overview**\n     - **Services & Offerings**\n     - **Products (if applicable)**\n     - **Contact Information**\n     - **Testimonials**\n     - **FAQs (Generated from Content)**\n\n2. **Ensure Structured Formatting:**\n   - Use **clear headings and subheadings** to categorize the extracted data.\n   - Retain all relevant information while eliminating redundancy.\n   - Convert lists into **bullet points or numbered lists** for readability.\n\n3. **Preserve Key Content Elements:**\n   - Do not remove any company-specific details that contribute to better searchability.\n   - Maintain testimonials exactly as written, including reviewer details.\n   - Where possible, restructure long paragraphs into **concise, digestible blocks** for efficient indexing.\n\n4. **Generate FAQ Section:**\n   - Create a structured **Frequently Asked Questions (FAQ)** section based on extracted information.\n   - FAQs should be **concise, clear, and directly relevant** to customer queries.\n   - Use **Q&A format** to improve chatbot retrieval accuracy.\n\n5. **Optimize for Chunking & Vectorization:**\n   - Format responses to ensure efficient **chunking** for embedding-based search.\n   - Use **consistent formatting** to enhance knowledge base indexing.\n   - Ensure **logical grouping** of related information to minimize retrieval errors.\n\n## Response Format Example:\n\n# Company Name\n\n## About Us\n- [Brief description of the company, mission, and core values]\n\n## Services & Offerings\n- **Service 1:** [Description]\n- **Service 2:** [Description]\n- **Service 3:** [Description]\n\n## Products (If Applicable)\n- **Product 1:** [Details]\n- **Product 2:** [Details]\n\n## Contact Information\n- **Email:** example@company.com\n- **Phone:** +1-123-456-7890\n- **Address:** 123 Business Road, City, Country\n\n## Testimonials\n\"Great experience with [Company Name]! Their service was outstanding.\"\n- **John Doe, CEO of XYZ Corp.**\n\n\"Highly recommended for [specific service]! Professional and reliable.\"\n- **Jane Smith, CTO at ABC Ltd.**\n\n## Frequently Asked Questions (FAQ)\n\n### What services does [Company Name] offer?\n- We provide [brief summary of services].\n\n### How can I get a consultation?\n- You can contact us via email at example@company.com or call +1-123-456-7890.\n\n### Do you provide custom solutions?\n- Yes, we offer tailored solutions based on business needs. Please contact us for more details.\n```\n\n## Inputs\n<cleaned_markdown>{{ $json.result_markdown }}</cleaned_markdown>\n\n\n## Response Rules:\n- **Do not remove** any business-critical content.\n- **Ensure all sections** are properly structured for chatbot use.\n- **Maintain readability** while optimizing for search and retrieval."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1780,
+        -240
+      ],
+      "id": "2ca5e9d3-da47-492b-9fd5-aefc843f7e03",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "h9YoCpR2bvvrYfrq",
+          "name": "OpenAi KT Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.message.content }}",
+        "name": "={{ $('setinfo').item.json.company_name }}.docx",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1nMYw64GtA1CEEsgxHEV04_ZgbAA16_mv",
+          "mode": "list",
+          "cachedResultName": "company_infos",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1nMYw64GtA1CEEsgxHEV04_ZgbAA16_mv"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2140,
+        -240
+      ],
+      "id": "d644c1fd-4284-439b-b5d2-29fe7ae19d12",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "6UrdB2f6LQWfuYkb",
+          "name": "Google Drive KT Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "daf592e2-f33e-461c-b972-6adc00f7c2f7",
+              "name": "company_name",
+              "value": "={{ $json.result.metadata.title }}_Knowledge based",
+              "type": "string"
+            },
+            {
+              "id": "abf6bf93-fbc9-48e1-b009-2832752870d3",
+              "name": "result_markdown",
+              "value": "={{ $json.result.markdown_v2.raw_markdown }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1560,
+        -140
+      ],
+      "id": "69c46d48-948f-4f2a-931e-d4ca8ec59196",
+      "name": "setinfo"
+    },
+    {
+      "parameters": {
+        "url": "https://kientran.asia/post-sitemap.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        -280
+      ],
+      "id": "8a9f98a8-fcc5-4f8b-b23e-39fb75bc745c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -280
+      ],
+      "id": "aa0e78e1-2e60-4291-8afc-599e907a4b90",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "urlset.url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -280
+      ],
+      "id": "536903c3-126f-42b0-b041-97bfce1638d5",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        220,
+        -280
+      ],
+      "id": "b372da62-cfd6-4ae7-9993-03bbc7128ad2",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2140,
+        160
+      ],
+      "id": "f6aee7af-908e-42e0-b6ff-3a2954ee2b59",
+      "name": "Wait1",
+      "webhookId": "990d1afc-e35d-4bb9-bcf9-3fc2acf667c2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ae8ef17-eebc-48b6-bacd-eb1d968ebe08",
+              "name": "URL",
+              "value": "={{ $json.loc }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        0
+      ],
+      "id": "2f38b74c-316b-4fd6-8ecc-47ce34a620e0",
+      "name": "SetURL"
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Call Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Task": {
+      "main": [
+        [
+          {
+            "node": "Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Completed": {
+      "main": [
+        [
+          {
+            "node": "setinfo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set TaskID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set TaskID": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "setinfo": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "SetURL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        []
+      ]
+    },
+    "SetURL": {
+      "main": [
+        [
+          {
+            "node": "Crawl",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "93cd1dc8-2e19-48cb-8149-49b858c5c63f",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "createdAt": "2025-03-18T06:52:59.078Z",
+      "updatedAt": "2025-03-18T06:52:59.078Z",
+      "id": "gn0CS2jSxP0NBlnc",
+      "name": "AutoAI"
+    },
+    {
+      "createdAt": "2025-04-01T15:53:27.691Z",
+      "updatedAt": "2025-04-01T15:53:27.691Z",
+      "id": "xp4XcE2aSpJIMBXF",
+      "name": "demo"
+    }
+  ]
+}
